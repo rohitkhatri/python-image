@@ -28,6 +28,7 @@ print(images)
 
 ```python
 {
+  'time': 2.434926986694336,
   'succeeded':[
     {
       'mime':'image/png',
