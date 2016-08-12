@@ -1,4 +1,5 @@
 import threading
+import time
 from ImageInfo import Request
 from PIL import Image
 
@@ -58,6 +59,7 @@ class ImageThread(threading.Thread):
 
 
 def get_image_meta(urls):
+    start_time = time.time()
     threads = []
     response = {'succeeded': [], 'failed': []}
 
@@ -72,5 +74,7 @@ def get_image_meta(urls):
             response['succeeded'].append(t.get())
         else:
             response['failed'].append(t.error())
+
+    response['time'] = time.time() - start_time
 
     return response
