@@ -9,23 +9,37 @@ class ImageThread(threading.Thread):
         self.url = url
         self.request = None
         self.image = False
+        self._error = False
+        self.allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/tiff', 'image/bmp']
 
     def run(self):
         self.request = Request.get(self.url)
 
-        if self.succeeded():
-            self.image = Image.open(self.request.get_bytes_io())
+        if self.request.client and self.status_code() == 200:
+            try:
+                if self.request.get_content_type() in self.allowed_types:
+                    self.image = Image.open(self.request.get_bytes_io())
+                else:
+                    self._error = 'Image format "'+self.request.get_content_type()+'" not supported'
+            except OSError as e:
+                self._error = str(e)
 
     def status_code(self):
         return self.request.client.status_code
 
     def succeeded(self):
-        return False if not self.request.client or self.status_code() != 200 else True
+        if not self.request.client or self.status_code() != 200:
+            self._error = self.request.error
+            return False
+        elif self._error:
+            return False
+
+        return True
 
     def error(self):
         return {
             'url': self.url,
-            'error': self.request.error
+            'error': self._error
         }
 
     def get(self):
